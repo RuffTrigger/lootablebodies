@@ -1,0 +1,14 @@
+name: LootableBodies
+version: 1.0
+main: org.rufftrigger.lootablebodies.Main
+description: Plugin that makes the body of a dead player lootable
+author: RuffTrigger
+api-version: 1.14
+commands:
+  lootablebodies:
+    description: Main command for the LootableBodies plugin.
+permissions:
+  lootablebodies.use:
+    description: Allows using the LootableBodies plugin.
+    default: true
+

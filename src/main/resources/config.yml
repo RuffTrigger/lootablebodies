@@ -1,0 +1,3 @@
+# Default configuration for LootableBodies plugin
+# body-removal-delay defines the time in seconds before the armor stand is removed, default is 5 mins
+body-removal-delay: 600
