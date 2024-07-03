@@ -33,7 +33,6 @@ Configuration
 The config.yml file includes the following configurable option:
 
 yaml
-Kopier kode
 body-removal-delay: 600  # Time in seconds before loot chests are automatically removed
 Usage
 On Player Death: A chest is created at the death location containing the player's inventory items.
