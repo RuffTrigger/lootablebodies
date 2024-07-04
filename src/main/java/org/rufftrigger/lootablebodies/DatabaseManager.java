@@ -31,7 +31,7 @@ public class DatabaseManager {
                             "owner_uuid TEXT NOT NULL, " +
                             "despawn_time BIGINT NOT NULL, " +
                             "player_level INT NOT NULL DEFAULT 0, " +
-                            "player_xp DOUBLE NOT NULL DEFAULT 0.0)")) {
+                            "player_xp DOUBLE NOT NULL DEFAULT 0)")) {
                 statement.executeUpdate();
             }
 
