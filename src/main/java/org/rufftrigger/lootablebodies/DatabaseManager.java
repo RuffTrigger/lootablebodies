@@ -106,4 +106,14 @@ public class DatabaseManager {
         }
         return 0;
     }
+
+    public void removeChestXP(String location) {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "UPDATE chests SET xp = 0 WHERE location = ?")) {
+            statement.setString(1, location);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

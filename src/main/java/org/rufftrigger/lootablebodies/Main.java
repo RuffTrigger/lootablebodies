@@ -3,6 +3,7 @@ package org.rufftrigger.lootablebodies;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
@@ -16,11 +17,9 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.World; // Import added for World
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -116,7 +115,7 @@ public class Main extends JavaPlugin implements Listener {
         // Store captured XP in the database
         databaseManager.addChestXP(serializeLocation(chest.getLocation()), xp);
 
-        // Cancel XP drop
+        // Prevent XP orbs from spawning at the death location
         event.setDroppedExp(0);
 
         // Store chest owner and despawn time in the database
@@ -147,6 +146,11 @@ public class Main extends JavaPlugin implements Listener {
                 if (!player.getUniqueId().equals(ownerUUID)) {
                     event.setCancelled(true);
                     player.sendMessage("You are not allowed to loot this chest.");
+                } else {
+                    // Give stored XP to the player
+                    int xp = databaseManager.getChestXP(serializeLocation(location));
+                    player.giveExp(xp);
+                    databaseManager.removeChestXP(serializeLocation(location));
                 }
             }
         }
