@@ -29,7 +29,8 @@ public class DatabaseManager {
                     "CREATE TABLE IF NOT EXISTS chests (" +
                             "location TEXT PRIMARY KEY, " +
                             "owner_uuid TEXT NOT NULL, " +
-                            "despawn_time BIGINT NOT NULL)")) {
+                            "despawn_time BIGINT NOT NULL," +
+                            "xp INT NOT NULL)")) {
                 statement.executeUpdate();
             }
 
@@ -48,12 +49,13 @@ public class DatabaseManager {
         }
     }
 
-    public void addChest(String location, UUID ownerUuid, long despawnTime) {
+    public void addChest(String location, UUID ownerUuid, long despawnTime, int xp) {
         try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT OR REPLACE INTO chests (location, owner_uuid, despawn_time) VALUES (?, ?, ?)")) {
+                "INSERT OR REPLACE INTO chests (location, owner_uuid, despawn_time, xp) VALUES (?, ?, ?, ?)")) {
             statement.setString(1, location);
             statement.setString(2, ownerUuid.toString());
             statement.setLong(3, despawnTime);
+            statement.setInt(4, xp);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

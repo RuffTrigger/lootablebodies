@@ -3,8 +3,8 @@ package org.rufftrigger.lootablebodies;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.World; // Make sure this import statement is present
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -28,14 +28,12 @@ import java.util.UUID;
 
 public class Main extends JavaPlugin implements Listener {
 
-    // Map to store chest locations and their owners
     private final Map<Location, UUID> chestOwners = new HashMap<>();
     private FileConfiguration config;
     private DatabaseManager databaseManager;
 
     @Override
     public void onEnable() {
-        // Ensure the config file exists with default values
         saveDefaultConfig();
         config = getConfig();
 
@@ -61,6 +59,7 @@ public class Main extends JavaPlugin implements Listener {
                 String locStr = rs.getString("location");
                 UUID ownerUUID = UUID.fromString(rs.getString("owner_uuid"));
                 long despawnTime = rs.getLong("despawn_time");
+                int xp = rs.getInt("xp");
 
                 Location location = deserializeLocation(locStr);
                 if (location.getBlock().getType() == Material.CHEST) {
@@ -74,7 +73,7 @@ public class Main extends JavaPlugin implements Listener {
                                 chestOwners.remove(location);
                                 databaseManager.removeChest(locStr);
                             }
-                        }.runTaskLater(this, delay * 20L); // Convert seconds to ticks (20 ticks = 1 second)
+                        }.runTaskLater(this, delay * 20L);
                     } else {
                         location.getBlock().setType(Material.AIR);
                         chestOwners.remove(location);
@@ -91,30 +90,27 @@ public class Main extends JavaPlugin implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
         ItemStack[] items = player.getInventory().getContents();
+        int xp = player.getTotalExperience();
 
-        // Clear player's inventory to simulate looting
         player.getInventory().clear();
+        player.setTotalExperience(0);
 
-        // Get the location of the player's death
         Location deathLocation = player.getLocation();
         Block block = deathLocation.getBlock();
         block.setType(Material.CHEST);
         Chest chest = (Chest) block.getState();
 
-        // Transfer items to the chest
         for (ItemStack item : items) {
             if (item != null) {
                 chest.getBlockInventory().addItem(item);
             }
         }
 
-        // Store chest owner
         chestOwners.put(chest.getLocation(), player.getUniqueId());
 
-        // Schedule removal of the chest after a delay
-        int delay = config.getInt("body-removal-delay", 600);  // Default to 600 seconds if not specified in config
+        int delay = config.getInt("body-removal-delay", 600);
         long despawnTime = System.currentTimeMillis() + delay * 1000L;
-        databaseManager.addChest(serializeLocation(chest.getLocation()), player.getUniqueId(), despawnTime);
+        databaseManager.addChest(serializeLocation(chest.getLocation()), player.getUniqueId(), despawnTime, xp);
 
         new BukkitRunnable() {
             @Override
@@ -125,7 +121,7 @@ public class Main extends JavaPlugin implements Listener {
                     databaseManager.removeChest(serializeLocation(chest.getLocation()));
                 }
             }
-        }.runTaskLater(this, delay * 20L);  // Convert seconds to ticks (20 ticks = 1 second)
+        }.runTaskLater(this, delay * 20L);
     }
 
     @EventHandler
@@ -135,7 +131,22 @@ public class Main extends JavaPlugin implements Listener {
             if (location != null && chestOwners.containsKey(location)) {
                 UUID ownerUUID = chestOwners.get(location);
                 Player player = (Player) event.getPlayer();
-                if (!player.getUniqueId().equals(ownerUUID)) {
+                if (player.getUniqueId().equals(ownerUUID)) {
+                    ResultSet rs = databaseManager.getChests();
+                    try {
+                        while (rs != null && rs.next()) {
+                            String locStr = rs.getString("location");
+                            if (locStr.equals(serializeLocation(location))) {
+                                int xp = rs.getInt("xp");
+                                player.giveExp(xp);
+                                databaseManager.removeChest(locStr);
+                                break;
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
                     event.setCancelled(true);
                     player.sendMessage("You are not allowed to loot this chest.");
                 }
@@ -153,7 +164,6 @@ public class Main extends JavaPlugin implements Listener {
                 event.setCancelled(true);
                 player.sendMessage("You are not allowed to break this loot chest.");
             } else {
-                // Remove chest from tracking if owner breaks it
                 chestOwners.remove(location);
                 databaseManager.removeChest(serializeLocation(location));
             }
@@ -179,7 +189,6 @@ public class Main extends JavaPlugin implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         Block block = event.getBlock();
         if (block.getType() == Material.LAVA || block.getType() == Material.LAVA_BUCKET) {
-            // Check surrounding blocks
             for (Block adjacentBlock : getAdjacentBlocks(block)) {
                 if (chestOwners.containsKey(adjacentBlock.getLocation())) {
                     event.setCancelled(true);
@@ -201,12 +210,10 @@ public class Main extends JavaPlugin implements Listener {
         };
     }
 
-    // Serialize location to string
     private String serializeLocation(Location location) {
         return location.getWorld().getName() + "," + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ();
     }
 
-    // Deserialize location from string
     private Location deserializeLocation(String locStr) {
         String[] parts = locStr.split(",");
         World world = Bukkit.getWorld(parts[0]);
