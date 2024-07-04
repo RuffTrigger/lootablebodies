@@ -103,7 +103,6 @@ public class Main extends JavaPlugin implements Listener {
 
         // Prevent XP orbs from spawning
         event.setDroppedExp(0);
-        event.getDrops().clear();
 
         // Store chest owner, level, and XP
         chestOwners.put(chest.getLocation(), player.getUniqueId());
