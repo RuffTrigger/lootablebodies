@@ -100,9 +100,11 @@ public class Main extends JavaPlugin implements Listener {
                 chest.getBlockInventory().addItem(item);
             }
         }
+
         // Prevent XP orbs from spawning
         event.setDroppedExp(0);
         event.getDrops().clear();
+
         // Store chest owner, level, and XP
         chestOwners.put(chest.getLocation(), player.getUniqueId());
         int delay = config.getInt("body-removal-delay", 600);  // Default to 600 seconds if not specified in config
