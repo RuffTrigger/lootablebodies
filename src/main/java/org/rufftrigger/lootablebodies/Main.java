@@ -93,10 +93,6 @@ public class Main extends JavaPlugin implements Listener {
         Player player = event.getEntity();
         ItemStack[] items = player.getInventory().getContents();
 
-        // Capture player's current XP
-        int xp = player.getTotalExperience();
-        player.setTotalExperience(0); // Clear player's XP
-
         // Clear player's inventory to simulate looting
         player.getInventory().clear();
 
@@ -113,7 +109,11 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
 
-        // Store chest owner and XP
+        // Capture player's current XP and clear it
+        int xp = player.getTotalExperience();
+        player.setTotalExperience(0);
+
+        // Store chest owner and XP in the database
         chestOwners.put(chest.getLocation(), player.getUniqueId());
         databaseManager.addChest(serializeLocation(chest.getLocation()), player.getUniqueId(), System.currentTimeMillis() + 600 * 1000L, xp);
 
