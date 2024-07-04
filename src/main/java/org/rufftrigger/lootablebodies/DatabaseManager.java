@@ -1,7 +1,6 @@
 package org.rufftrigger.lootablebodies;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -30,18 +29,9 @@ public class DatabaseManager {
                     "CREATE TABLE IF NOT EXISTS chests (" +
                             "location TEXT PRIMARY KEY, " +
                             "owner_uuid TEXT NOT NULL, " +
-                            "despawn_time BIGINT NOT NULL)")) {
+                            "despawn_time BIGINT NOT NULL, " +
+                            "xp INT NOT NULL)")) {
                 statement.executeUpdate();
-            }
-
-            // Check if 'xp' column exists, and add it if it doesn't
-            DatabaseMetaData meta = connection.getMetaData();
-            ResultSet rs = meta.getColumns(null, null, "chests", "xp");
-            if (!rs.next()) {
-                try (PreparedStatement statement = connection.prepareStatement(
-                        "ALTER TABLE chests ADD COLUMN xp INT NOT NULL DEFAULT 0")) {
-                    statement.executeUpdate();
-                }
             }
 
         } catch (SQLException | ClassNotFoundException e) {
@@ -91,5 +81,20 @@ public class DatabaseManager {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public int getChestXP(String location) {
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT xp FROM chests WHERE location = ?");
+            statement.setString(1, location);
+            ResultSet rs = statement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("xp");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }
