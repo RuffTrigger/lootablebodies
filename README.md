@@ -4,7 +4,7 @@ Features
 Death Chests:
 
 Upon a player's death, their inventory items are automatically transferred to a chest at their death location.
-The player's inventory is cleared, simulating the looting process.^
+The player's inventory is cleared, simulating the looting process.
 
 Stores Level & XP on player death:
 
