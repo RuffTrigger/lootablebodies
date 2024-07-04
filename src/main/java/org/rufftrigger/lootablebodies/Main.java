@@ -80,10 +80,6 @@ public class Main extends JavaPlugin implements Listener {
         Player player = event.getEntity();
         ItemStack[] items = player.getInventory().getContents();
 
-        // Store player's level and XP
-        int playerLevel = player.getLevel();
-        double playerXP = player.getExp();
-
         // Clear player's inventory to simulate looting
         player.getInventory().clear();
 
@@ -100,13 +96,17 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
 
-        // Store chest owner, level, and XP
+        // Prevent XP orbs from spawning
+        event.setDroppedExp(0);
+        event.getDrops().clear();
+
+        // Store chest owner
         chestOwners.put(chest.getLocation(), player.getUniqueId());
+
+        // Schedule removal of the chest after a delay
         int delay = config.getInt("body-removal-delay", 600);  // Default to 600 seconds if not specified in config
         long despawnTime = System.currentTimeMillis() + delay * 1000L;
-        databaseManager.addChest(serializeLocation(chest.getLocation()), player.getUniqueId(), despawnTime, playerLevel, playerXP);
-
-        protectChest(chest.getLocation(), despawnTime);
+        databaseManager.addChest(serializeLocation(chest.getLocation()), player.getUniqueId(), despawnTime, player.getLevel(), player.getExp());
 
         new BukkitRunnable() {
             @Override
