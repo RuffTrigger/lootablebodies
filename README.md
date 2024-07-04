@@ -4,7 +4,12 @@ Features
 Death Chests:
 
 Upon a player's death, their inventory items are automatically transferred to a chest at their death location.
-The player's inventory is cleared, simulating the looting process.
+The player's inventory is cleared, simulating the looting process.^
+
+Stores Level & XP on player death:
+Save the player's Level and XP in the database when they die.
+When the chest is opened by the player who owns it, return the stored Level and XP to the player.
+
 Owner Protection:
 
 Only the owner of the chest (the player who died) can open and loot their chest.
