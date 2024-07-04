@@ -109,18 +109,15 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
 
-        // Capture player's current XP and clear it
+        // Capture player's current XP and store it in the database
         int xp = player.getTotalExperience();
-        player.setTotalExperience(0);
+        databaseManager.addChestXP(serializeLocation(chest.getLocation()), xp);
 
-        // Store chest owner and XP in the database
+        // Store chest owner and despawn time in the database
         chestOwners.put(chest.getLocation(), player.getUniqueId());
-        databaseManager.addChest(serializeLocation(chest.getLocation()), player.getUniqueId(), System.currentTimeMillis() + 600 * 1000L, xp);
-
-        // Schedule removal of the chest after a delay
-        int delay = config.getInt("body-removal-delay", 600);  // Default to 600 seconds if not specified in config
+        long delay = config.getInt("body-removal-delay", 600);  // Default to 600 seconds if not specified in config
         long despawnTime = System.currentTimeMillis() + delay * 1000L;
-        databaseManager.addChest(serializeLocation(chest.getLocation()), player.getUniqueId(), despawnTime, xp);
+        databaseManager.addChest(serializeLocation(chest.getLocation()), player.getUniqueId(), despawnTime);
 
         new BukkitRunnable() {
             @Override
@@ -145,7 +142,7 @@ public class Main extends JavaPlugin implements Listener {
                     event.setCancelled(true);
                     player.sendMessage("You are not allowed to loot this chest.");
                 } else {
-                    // Retrieve XP from chest and give it to the player
+                    // Retrieve XP from database and give it to the player
                     int xp = databaseManager.getChestXP(serializeLocation(location));
                     player.giveExp(xp);
                     player.sendMessage("You retrieved " + xp + " experience points.");

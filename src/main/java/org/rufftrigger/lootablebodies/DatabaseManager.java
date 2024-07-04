@@ -49,13 +49,24 @@ public class DatabaseManager {
         }
     }
 
-    public void addChest(String location, UUID ownerUuid, long despawnTime, int xp) {
+    public void addChest(String location, UUID ownerUuid, long despawnTime) {
         try (PreparedStatement statement = connection.prepareStatement(
                 "INSERT OR REPLACE INTO chests (location, owner_uuid, despawn_time, xp) VALUES (?, ?, ?, ?)")) {
             statement.setString(1, location);
             statement.setString(2, ownerUuid.toString());
             statement.setLong(3, despawnTime);
-            statement.setInt(4, xp);
+            statement.setInt(4, 0); // Initialize XP to 0
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addChestXP(String location, int xp) {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "UPDATE chests SET xp = ? WHERE location = ?")) {
+            statement.setInt(1, xp);
+            statement.setString(2, location);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
