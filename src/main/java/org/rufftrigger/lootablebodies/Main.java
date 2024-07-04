@@ -7,6 +7,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,6 +24,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.World; // Import added for World
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -61,7 +64,6 @@ public class Main extends JavaPlugin implements Listener {
                 String locStr = rs.getString("location");
                 UUID ownerUUID = UUID.fromString(rs.getString("owner_uuid"));
                 long despawnTime = rs.getLong("despawn_time");
-                int xp = rs.getInt("xp");
 
                 Location location = deserializeLocation(locStr);
                 if (location.getBlock().getType() == Material.CHEST) {
@@ -83,7 +85,7 @@ public class Main extends JavaPlugin implements Listener {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -92,6 +94,9 @@ public class Main extends JavaPlugin implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
         ItemStack[] items = player.getInventory().getContents();
+
+        // Capture player's current XP
+        int xp = player.getTotalExperience();
 
         // Clear player's inventory to simulate looting
         player.getInventory().clear();
@@ -109,9 +114,15 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
 
-        // Capture player's current XP and store it in the database
-        int xp = player.getTotalExperience();
+        // Store captured XP in the database
         databaseManager.addChestXP(serializeLocation(chest.getLocation()), xp);
+
+        // Remove any XP orbs around the death location
+        for (Entity nearbyEntity : player.getNearbyEntities(1, 1, 1)) {
+            if (nearbyEntity instanceof ExperienceOrb) {
+                nearbyEntity.remove();
+            }
+        }
 
         // Store chest owner and despawn time in the database
         chestOwners.put(chest.getLocation(), player.getUniqueId());
@@ -141,11 +152,6 @@ public class Main extends JavaPlugin implements Listener {
                 if (!player.getUniqueId().equals(ownerUUID)) {
                     event.setCancelled(true);
                     player.sendMessage("You are not allowed to loot this chest.");
-                } else {
-                    // Retrieve XP from database and give it to the player
-                    int xp = databaseManager.getChestXP(serializeLocation(location));
-                    player.giveExp(xp);
-                    player.sendMessage("You retrieved " + xp + " experience points.");
                 }
             }
         }
