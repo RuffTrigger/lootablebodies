@@ -117,7 +117,6 @@ public class Main extends JavaPlugin implements Listener {
         databaseManager.addChestXP(serializeLocation(chest.getLocation()), xp);
 
         // Cancel XP drop
-        event.setKeepLevel(true);
         event.setDroppedExp(0);
 
         // Store chest owner and despawn time in the database
