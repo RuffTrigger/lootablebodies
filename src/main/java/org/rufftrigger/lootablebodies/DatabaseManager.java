@@ -30,7 +30,8 @@ public class DatabaseManager {
                             "location TEXT PRIMARY KEY, " +
                             "owner_uuid TEXT NOT NULL, " +
                             "despawn_time BIGINT NOT NULL, " +
-                            "xp INT NOT NULL DEFAULT 0)")) {
+                            "player_level INT NOT NULL DEFAULT 0, " +
+                            "player_xp DOUBLE NOT NULL DEFAULT 0.0)")) {
                 statement.executeUpdate();
             }
 
@@ -49,12 +50,14 @@ public class DatabaseManager {
         }
     }
 
-    public void addChest(String location, UUID ownerUuid, long despawnTime) {
+    public void addChest(String location, UUID ownerUuid, long despawnTime, int playerLevel, double playerXP) {
         try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT OR REPLACE INTO chests (location, owner_uuid, despawn_time) VALUES (?, ?, ?)")) {
+                "INSERT OR REPLACE INTO chests (location, owner_uuid, despawn_time, player_level, player_xp) VALUES (?, ?, ?, ?, ?)")) {
             statement.setString(1, location);
             statement.setString(2, ownerUuid.toString());
             statement.setLong(3, despawnTime);
+            statement.setInt(4, playerLevel);
+            statement.setDouble(5, playerXP);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -79,41 +82,6 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
-        }
-    }
-
-    public void addChestXP(String location, int xp) {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "UPDATE chests SET xp = ? WHERE location = ?")) {
-            statement.setInt(1, xp);
-            statement.setString(2, location);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public int getChestXP(String location) {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT xp FROM chests WHERE location = ?")) {
-            statement.setString(1, location);
-            ResultSet rs = statement.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("xp");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    public void removeChestXP(String location) {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "UPDATE chests SET xp = 0 WHERE location = ?")) {
-            statement.setString(1, location);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }
