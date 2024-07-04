@@ -7,8 +7,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,6 +16,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -117,12 +116,9 @@ public class Main extends JavaPlugin implements Listener {
         // Store captured XP in the database
         databaseManager.addChestXP(serializeLocation(chest.getLocation()), xp);
 
-        // Remove any XP orbs around the death location
-        for (Entity nearbyEntity : player.getNearbyEntities(1, 1, 1)) {
-            if (nearbyEntity instanceof ExperienceOrb) {
-                nearbyEntity.remove();
-            }
-        }
+        // Cancel XP drop
+        event.setKeepLevel(true);
+        event.setDroppedExp(0);
 
         // Store chest owner and despawn time in the database
         chestOwners.put(chest.getLocation(), player.getUniqueId());
