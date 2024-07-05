@@ -6,7 +6,7 @@
 
     <groupId>org.rufftrigger</groupId>
     <artifactId>LootableBodies</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>v1.1</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
