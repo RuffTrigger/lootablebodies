@@ -100,6 +100,8 @@ public class Main extends JavaPlugin implements Listener {
                 chest.getBlockInventory().addItem(item);
             }
         }
+        // Prevent items from dropping on the ground
+        event.getDrops().clear();
 
         // Prevent XP orbs from spawning
         event.setDroppedExp(0);
